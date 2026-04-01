@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SmartGuard IoT</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+        nav { background: #1a237e; color: white; padding: 15px 30px; font-size: 1.4em; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat { background: white; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat .num { font-size: 2em; font-weight: bold; color: #1a237e; }
+        .stat .lbl { color: #666; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .card h2 { margin-top: 0; color: #1a237e; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f5f5f5; }
+        a { color: #1565c0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .badge { padding: 3px 8px; border-radius: 10px; color: white; font-size: 0.85em; }
+        .critical { background: #d32f2f; }
+        .high { background: #f57c00; }
+        .medium { background: #fbc02d; color: #333; }
+        .low { background: #4caf50; }
+        .btn { padding: 10px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-generate { background: #4caf50; color: white; }
+        .btn-generate:hover { background: #388e3c; text-decoration: none; }
+        .actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .live-dot { width: 10px; height: 10px; background: #4caf50; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <span><span class="live-dot"></span> SmartGuard IoT</span>
+    </nav>
+    <div class="container">
+
+        <!-- Action Button -->
+        <div class="actions">
+            <a href="{% url 'smartguard:generate_data' %}" class="btn btn-generate">
+                ⚡ Generate Random Data
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat"><div class="num">{{ building_count }}</div><div class="lbl">Buildings</div></div>
+            <div class="stat"><div class="num">{{ sensor_count }}</div><div class="lbl">Sensors</div></div>
+            <div class="stat"><div class="num">{{ reading_count }}</div><div class="lbl">Readings</div></div>
+            <div class="stat"><div class="num">{{ anomaly_count }}</div><div class="lbl">Anomalies</div></div>
+            <div class="stat"><div class="num">{{ alert_count }}</div><div class="lbl">Alerts</div></div>
+        </div>
+
+        <!-- Buildings -->
+        <div class="card">
+            <h2>Buildings</h2>
+            <table>
+                <tr><th>Name</th><th>Type</th><th>Address</th></tr>
+                {% for b in buildings %}
+                <tr>
+                    <td><a href="{% url 'smartguard:building_detail' b.id %}">{{ b.name }}</a></td>
+                    <td>{{ b.building_type.name }}</td>
+                    <td>{{ b.address }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Recent Readings -->
+        <div class="card">
+            <h2>Recent Readings</h2>
+            <table>
+                <tr><th>Time</th><th>Sensor</th><th>Building</th><th>Voltage</th><th>Current</th><th>Power</th><th>PF</th></tr>
+                {% for r in recent_readings %}
+                <tr>
+                    <td>{{ r.timestamp|date:"M d, H:i:s" }}</td>
+                    <td>{{ r.sensor.appliance_name }}</td>
+                    <td>{{ r.sensor.building.name }}</td>
+                    <td>{{ r.voltage|floatformat:1 }}V</td>
+                    <td>{{ r.current|floatformat:2 }}A</td>
+                    <td>{{ r.power_watts|floatformat:1 }}W</td>
+                    <td>{{ r.power_factor|floatformat:3 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Recent Anomalies -->
+        <div class="card">
+            <h2>Recent Anomalies</h2>
+            <table>
+                <tr><th>Type</th><th>Severity</th><th>Appliance</th><th>Building</th><th>Resolved</th></tr>
+                {% for a in recent_anomalies %}
+                <tr>
+                    <td>{{ a.get_anomaly_type_display }}</td>
+                    <td><span class="badge {{ a.severity|lower }}">{{ a.severity }}</span></td>
+                    <td>{{ a.sensor.appliance_name }}</td>
+                    <td>{{ a.sensor.building.name }}</td>
+                    <td>{% if a.resolved %}✅ Yes{% else %}❌ No{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>

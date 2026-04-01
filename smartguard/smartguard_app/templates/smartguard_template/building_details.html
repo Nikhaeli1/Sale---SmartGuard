@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ building.name }} - SmartGuard IoT</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+        nav { background: #1a237e; color: white; padding: 15px 30px; font-size: 1.4em; }
+        nav a { color: white; margin-left: 20px; font-size: 0.7em; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .header { background: #1a237e; color: white; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        .header h1 { margin: 0; }
+        .header p { margin: 5px 0; opacity: 0.9; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .card h2 { margin-top: 0; color: #1a237e; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f5f5f5; }
+        .badge { padding: 3px 8px; border-radius: 10px; color: white; font-size: 0.85em; }
+        .critical { background: #d32f2f; }
+        .high { background: #f57c00; }
+        .medium { background: #fbc02d; color: #333; }
+        .low { background: #4caf50; }
+    </style>
+</head>
+<body>
+    <nav>SmartGuard IoT <a href="{% url 'smartguard:dashboard' %}">Back to Dashboard</a></nav>
+    <div class="container">
+        <div class="header">
+            <h1>{{ building.name }}</h1>
+            <p>Type: {{ building.building_type.name }}</p>
+            <p>Address: {{ building.address }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Sensors</h2>
+            <table>
+                <tr><th>Label</th><th>Appliance</th><th>Avg Power</th><th>Peak Power</th><th>Avg PF</th><th>Readings</th><th>Anomalies</th></tr>
+                {% for s in sensor_stats %}
+                <tr>
+                    <td>{{ s.sensor.sensor_label }}</td>
+                    <td>{{ s.sensor.appliance_name }}</td>
+                    <td>{{ s.avg_power|floatformat:1 }}W</td>
+                    <td>{{ s.max_power|floatformat:1 }}W</td>
+                    <td>{{ s.avg_pf|floatformat:3 }}</td>
+                    <td>{{ s.count }}</td>
+                    <td>{{ s.anomaly_count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Anomalies</h2>
+            <table>
+                <tr><th>Type</th><th>Severity</th><th>Description</th><th>Resolved</th></tr>
+                {% for a in anomalies %}
+                <tr>
+                    <td>{{ a.get_anomaly_type_display }}</td>
+                    <td><span class="badge {{ a.severity|lower }}">{{ a.severity }}</span></td>
+                    <td>{{ a.description }}</td>
+                    <td>{% if a.resolved %}Yes{% else %}No{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>
